@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>حساب المواريث</title>
+
+<style>
+
+:root{
+--bg:#fafafa;
+--card:#ffffff;
+--border:#e5e7eb;
+--accent:#3b82f6;
+--accent-soft:#eff6ff;
+--radius:16px;
+--maxw:520px;
+}
+
+*{box-sizing:border-box}
+
+body{
+margin:0;
+background:var(--bg);
+font-family:system-ui,-apple-system,"Segoe UI",Roboto,Tahoma;
+}
+
+.wrap{
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:flex-start;
+padding:40px 16px 0;
+}
+
+.card{
+width:100%;
+max-width:var(--maxw);
+background:var(--card);
+border:1px solid var(--border);
+border-radius:var(--radius);
+padding:24px 24px 20px;
+box-shadow:0 10px 30px rgba(0,0,0,.05);
+}
+
+h1{
+text-align:center;
+font-size:20px;
+margin-bottom:20px;
+}
+
+.input{
+display:flex;
+align-items:center;
+gap:10px;
+border:1px solid var(--border);
+border-radius:12px;
+padding:10px 12px;
+margin-bottom:20px;
+background:transparent;
+transition: box-shadow .15s ease, border-color .15s ease, background-color .15s ease;
+}
+
+.input:focus-within{
+border-color:var(--accent);
+box-shadow:0 4px 16px rgba(59,130,246,.16);
+background-color:rgba(59,130,246,.02);
+}
+
+.input input{
+border:none;
+outline:none;
+width:100%;
+font-size:1.15rem;
+text-align:center;
+background:transparent;
+color:inherit;
+-webkit-appearance:none;
+appearance:none;
+}
+
+/* table */
+
+.tableWrap{
+border:1px solid #dbeafe;
+border-radius:12px;
+overflow:hidden;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+text-align:center;
+}
+
+thead{
+background:var(--accent-soft);
+}
+
+th{
+padding:12px;
+font-weight:600;
+border-bottom:1px solid #dbeafe;
+}
+
+td{
+padding:11px;
+border-top:1px solid #eef2ff;
+}
+
+th:first-child,
+td:first-child{
+border-left:1px solid #dbeafe;
+}
+
+tbody tr:nth-child(even){
+background:#f8fbff;
+}
+
+.amount{
+font-weight:bold;
+}
+
+.total{
+font-weight:bold;
+background:#eef6ff;
+}
+
+/* فاصل أثخن شوي وأغمق بعد نورة وبعد مشاري */
+tr.separator-after td {
+border-bottom: 1px solid #a6c4f4 !important;
+}
+
+.ok  { color:#16a34a }
+.bad { color:#dc2626 }
+
+/* صف الفرق - دائماً موجود */
+#diffRow td {
+  font-weight: bold;
+  font-size: 0.92rem;
+}
+
+/* حالة: لا فرق */
+.diff-none { background:#f8fbff; color:#6b7280; }
+/* حالة: أي فرق (زيادة أو نقص) — دائماً أحمر */
+.diff-add  { background:#fef2f2; color:#dc2626; }
+.diff-sub  { background:#fef2f2; color:#dc2626; }
+
+.row{
+display:flex;
+justify-content:center;
+margin-top:18px;
+margin-bottom:0;
+}
+
+.btn{
+width:100%;
+max-width:300px;
+border:1px solid var(--border);
+background:transparent;
+color:inherit;
+border-radius:12px;
+padding:10px 12px;
+font-size:0.95rem;
+cursor:pointer;
+transition: box-shadow .12s ease, border-color .12s ease, transform .06s ease;
+-webkit-tap-highlight-color: transparent;
+}
+
+.btn:hover, .btn:focus{
+border-color:var(--accent);
+box-shadow:0 6px 20px rgba(59,130,246,.14);
+transform:translateY(-1px);
+background-color:rgba(59,130,246,.02);
+outline:none;
+}
+
+.btn:active{
+transform:translateY(0);
+}
+
+</style>
+</head>
+
+<body>
+
+<main class="wrap">
+<div class="card">
+
+<h1>حساب المواريث</h1>
+
+<div class="input">
+<input id="amount" placeholder="مبلغ التركة" inputmode="decimal">
+</div>
+
+<div class="tableWrap">
+<table>
+
+<thead>
+<tr>
+<th>الاسم</th>
+<th>المبلغ</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr class="separator-after"><td>نورة</td><td class="amount" id="wife">0</td></tr>
+
+<tr><td>سعد</td><td class="amount" id="saad">0</td></tr>
+<tr class="separator-after"><td>مشاري</td><td class="amount" id="mshari">0</td></tr>
+
+<tr><td>أثير</td><td class="amount" id="atheer">0</td></tr>
+<tr><td>فاطمة</td><td class="amount" id="fatima">0</td></tr>
+<tr><td>لوجين</td><td class="amount" id="lojin">0</td></tr>
+<tr><td>ندى</td><td class="amount" id="nada">0</td></tr>
+<tr><td>وتين</td><td class="amount" id="wateen">0</td></tr>
+<tr class="separator-after"><td>ريتان</td><td class="amount" id="ritan">0</td></tr>
+
+<tr class="total" id="totalRow">
+<td>الإجمالي</td>
+<td id="total">0</td>
+</tr>
+
+<!-- صف الفرق - دائماً موجود بعد الإجمالي -->
+<tr id="diffRow" class="diff-none">
+  <td id="diffLabel">لتصحيح الفرق</td>
+  <td id="diffVal">0.00</td>
+</tr>
+
+</tbody>
+</table>
+</div>
+
+<div class="row">
+<button id="clear" class="btn">تفريغ</button>
+</div>
+
+</div>
+</main>
+
+<script>
+
+const input    = document.getElementById("amount");
+const clearBtn = document.getElementById("clear");
+const totalRow = document.getElementById("totalRow");
+const diffRow  = document.getElementById("diffRow");
+const diffVal  = document.getElementById("diffVal");
+const diffLabel= document.getElementById("diffLabel");
+
+/* تنسيق الأرقام بفاصلة آلاف + هللتين */
+const nf = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+
+function clean(v){
+  return v.replace(/,/g, '');
+}
+
+function fmt(v){
+  return nf.format(v);
+}
+
+function set(id, val){
+  document.getElementById(id).innerText = fmt(val);
+}
+
+function calc(){
+
+  let total = parseFloat(clean(input.value)) || 0;
+
+  /* الحسابات بدقة عالية */
+  let wife      = total / 8;
+  let remainder = total - wife;
+  let share     = remainder / 10;   /* سهم واحد */
+  let son       = share * 2;        /* للذكر مثل حظ الأنثيين */
+  let daughter  = share;
+
+  /* القيم الحقيقية غير مقرّبة */
+  let exactValues = [
+    wife,
+    son, son,
+    daughter, daughter, daughter, daughter, daughter, daughter
+  ];
+
+  /* تقريب كل قيمة لأقرب هللتين */
+  let rounded = exactValues.map(v => Math.round(v * 100) / 100);
+
+  /* مجموع المقرّب */
+  let sumRounded = rounded.reduce((a, b) => a + b, 0);
+  sumRounded = Math.round(sumRounded * 100) / 100;
+
+  /* الفرق */
+  let diff = Math.round((total - sumRounded) * 100) / 100;
+
+  /* عرض الوارثين */
+  set("wife",    rounded[0]);
+  set("saad",    rounded[1]);
+  set("mshari",  rounded[2]);
+  set("atheer",  rounded[3]);
+  set("fatima",  rounded[4]);
+  set("lojin",   rounded[5]);
+  set("nada",    rounded[6]);
+  set("wateen",  rounded[7]);
+  set("ritan",   rounded[8]);
+
+  /* الإجمالي = مجموع المقرّب */
+  set("total", sumRounded);
+
+  /* صف الفرق - دائماً موجود */
+  diffRow.classList.remove("diff-none", "diff-add", "diff-sub");
+
+  if(total === 0 || Math.abs(diff) < 0.01){
+    /* لا فرق أو لا مدخل */
+    diffRow.classList.add("diff-none");
+    diffLabel.innerText = "الفرق";
+    diffVal.innerText   = fmt(0);
+
+  } else if(diff > 0){
+    diffRow.classList.add("diff-add");
+    diffLabel.innerText = "الفرق";
+    diffVal.innerText   = "- " + fmt(diff);
+
+  } else {
+    diffRow.classList.add("diff-sub");
+    diffLabel.innerText = "الفرق";
+    diffVal.innerText   = "+ " + fmt(Math.abs(diff));
+  }
+
+  /* لون الإجمالي */
+  totalRow.classList.remove("ok","bad");
+  if(total > 0){
+    totalRow.classList.add(Math.abs(diff) < 0.01 ? "ok" : "bad");
+  }
+
+}
+
+/* السماح بالأرقام العشرية والفواصل فقط */
+input.addEventListener("input", (e) => {
+
+  let raw = clean(e.target.value);
+
+  /* نمنع أي حرف غير رقمي أو نقطة */
+  raw = raw.replace(/[^0-9.]/g, '');
+
+  /* نمنع أكثر من نقطة */
+  let parts = raw.split('.');
+  if(parts.length > 2) raw = parts[0] + '.' + parts.slice(1).join('');
+
+  /* نعيد التنسيق بفواصل الآلاف مع الحفاظ على الكسر كما يكتبه المستخدم */
+  let intPart  = parts[0] ? parseInt(parts[0], 10) : '';
+  let intFmt   = intPart !== '' ? new Intl.NumberFormat('en-US').format(intPart) : '';
+
+  if(raw.includes('.')){
+    /* الجزء الكسري: نأخذه كما هو (حتى 2 خانة) */
+    let decPart = parts[1] !== undefined ? parts[1].slice(0, 2) : '';
+    e.target.value = intFmt + '.' + decPart;
+  } else {
+    e.target.value = intFmt;
+  }
+
+  calc();
+});
+
+clearBtn.onclick = () => {
+  input.value = "";
+  calc();
+  input.focus();
+};
+
+calc();
+
+</script>
+
+</body>
+</html>
